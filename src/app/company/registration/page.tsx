@@ -3,23 +3,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Layout from "./_components/Layout"
 import { Building2, Users, Briefcase, Calendar } from "lucide-react"
+import {myCompanyInfo} from "@/app/company/actions";
 
-// This is a mock function. In a real application, you would fetch this data from your backend.
-const getCompanyInfo = () => {
-    // For demonstration, we'll return null to simulate no registered company.
-    // In a real app, you'd return the actual company data if it exists.
-    return {
-        name:'',
-        description:''
-    }
-}
-
-export default function Home() {
-    const companyInfo = getCompanyInfo()
+export default async function Home() {
+    const {status, data} = await myCompanyInfo()
 
     return (
         <Layout>
-            {companyInfo ? (
+            {status === 'success' ? (
                 <Card className="border-2">
                     <CardHeader>
                         <CardTitle className="flex items-center text-2xl font-bold text-gray-900">
@@ -28,10 +19,10 @@ export default function Home() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <p className="text-lg text-gray-700">{companyInfo.name}</p>
-                        <p className="text-gray-600">{companyInfo.description}</p>
+                        <p className="text-lg text-gray-700">{data.name}</p>
+                        <p className="text-gray-600">{data.simpleExp}</p>
                         {/* Add more company information here */}
-                        <Link href="/company-management">
+                        <Link href="/company/registration/company-info">
                             <Button className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white">Edit Company Information</Button>
                         </Link>
                     </CardContent>
@@ -47,7 +38,7 @@ export default function Home() {
                     <CardContent className="space-y-4">
                         <p className="text-lg text-gray-700">It looks like you haven`t registered your company information yet.</p>
                         <p className="text-gray-600">To get started, please register your company details.</p>
-                        <Link href="/company-management">
+                        <Link href="/company/registration/company-info">
                             <Button className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white">Register Company</Button>
                         </Link>
                     </CardContent>
@@ -56,7 +47,7 @@ export default function Home() {
             <div className="mt-8">
                 <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">Quick Access</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Link href="/company-management" className="transition-transform hover:-translate-y-1">
+                    <Link href="/company/registration/company-info" className="transition-transform hover:-translate-y-1">
                         <Button
                             variant="outline"
                             className="w-full h-24 text-lg font-medium border-2 hover:bg-yellow-50 hover:border-yellow-400 hover:text-yellow-600"
@@ -65,7 +56,7 @@ export default function Home() {
                             Company Management
                         </Button>
                     </Link>
-                    <Link href="/staff" className="transition-transform hover:-translate-y-1">
+                    <Link href="/company/registration/staff" className="transition-transform hover:-translate-y-1">
                         <Button
                             variant="outline"
                             className="w-full h-24 text-lg font-medium border-2 hover:bg-yellow-50 hover:border-yellow-400 hover:text-yellow-600"
@@ -74,7 +65,7 @@ export default function Home() {
                             Staff Management
                         </Button>
                     </Link>
-                    <Link href="/staff-service-info" className="transition-transform hover:-translate-y-1">
+                    <Link href="/company/registration/staff-service-info" className="transition-transform hover:-translate-y-1">
                         <Button
                             variant="outline"
                             className="w-full h-24 text-lg font-medium border-2 hover:bg-yellow-50 hover:border-yellow-400 hover:text-yellow-600"

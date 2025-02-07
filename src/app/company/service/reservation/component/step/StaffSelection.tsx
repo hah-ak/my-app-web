@@ -42,25 +42,27 @@ export const StaffSelection = ({ onSelect }: { onSelect: (staff: string) => void
 
     return (
         <div className="space-y-4">
-            <Label className="text-lg font-semibold">담당 직원 선택</Label>
+            <Label className="text-lg font-semibold text-gray-900">담당 직원 선택</Label>
             <RadioGroup value={selectedStaff} onValueChange={handleStaffSelect}>
                 {staffMembers.map((staff) => (
                     <Card
                         key={staff.id}
-                        className={`mb-4 cursor-pointer transition-all ${selectedStaff === staff.id ? "ring-2 ring-primary" : ""}`}
+                        className={`mb-4 cursor-pointer transition-all border-2 ${
+                            selectedStaff === staff.id ? "ring-2 ring-yellow-500" : ""
+                        }`}
                     >
                         <CardContent className="flex items-center p-4">
-                            <RadioGroupItem value={staff.id} id={staff.id} className="sr-only" />
-                            <Label htmlFor={staff.id} className="flex items-center cursor-pointer">
+                            <RadioGroupItem value={staff.id} id={staff.id} className="sr-only"/>
+                            <Label htmlFor={staff.id} className="flex items-center cursor-pointer w-full">
                                 <Image
                                     src={staff.imageUrl || "/placeholder.svg"}
                                     alt={staff.name}
-                                    width={100}
-                                    height={100}
+                                    width={80}
+                                    height={80}
                                     className="rounded-full mr-4"
                                 />
                                 <div>
-                                    <h3 className="font-semibold">{staff.name}</h3>
+                                    <h3 className="font-semibold text-gray-900">{staff.name}</h3>
                                     <p className="text-sm text-gray-600">{staff.description}</p>
                                 </div>
                             </Label>

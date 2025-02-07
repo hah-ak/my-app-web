@@ -102,7 +102,7 @@ export const ServiceReservation = ({ services }: { services: any }) => {
                     <Progress
                         value={((currentStep + 1) / steps.length) * 100}
                         className="mb-4 bg-yellow-200"
-                        // indicatorColor="bg-yellow-500"
+                        indicatorColor="bg-yellow-500"
                     />
                     {renderStep()}
                 </CardContent>

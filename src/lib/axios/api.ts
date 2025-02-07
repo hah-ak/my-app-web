@@ -15,5 +15,8 @@ const url = (() => {
 })()
 
 export const apiAxios = axios.create({
-    baseURL: url
+    baseURL: url,
+    headers: {
+        "GLID" : "unknown"
+    }
 })

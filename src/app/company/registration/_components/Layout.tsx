@@ -25,17 +25,17 @@ export default function Layout({ children }: LayoutProps) {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56">
                                 <DropdownMenuItem>
-                                    <Link href="/company-management" className="w-full">
+                                    <Link href="/company/registration/company-info" className="w-full">
                                         Company Management
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                    <Link href="/staff" className="w-full">
+                                    <Link href="/company/registration/staff" className="w-full">
                                         Staff Management
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                    <Link href="/staff-service-info" className="w-full">
+                                    <Link href="/company/registration/staff-service-info" className="w-full">
                                         Staff Service Info
                                     </Link>
                                 </DropdownMenuItem>

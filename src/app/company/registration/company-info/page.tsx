@@ -1,53 +1,55 @@
 "use client"
 
-import type React from "react"
+import React, {useEffect} from "react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Minus, Building2, Briefcase, Clock, Calendar } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Layout from "../_components/Layout"
-
-interface CompanyService {
-    content: string
-    img: string
-}
-
-interface BusinessWeekTimeTable {
-    dayOfTheWeek: string
-    openTime: string
-    closeTime: string
-    startBreakTime: string
-    endBreakTime: string
-}
-
-interface ExceptionTimeTable {
-    date: string
-    time: string
-    reason: string
-}
+import type {
+    CompanyService,
+    BusinessWeekTimeTable,
+    ExceptionTimeTable,
+    Company,
+    MyCompany
+} from "@/types/company/types"
+import {createCompany, myCompanyDetailInfo, updateCompany} from "@/app/company/actions";
 
 function CompanyManagementForm() {
-    const [company, setCompany] = useState({
+    const [company, setCompany] = useState<Company>({
+        id : 0,
         name: "",
         simpleExp: "",
-        holidayWork: false,
-        taxId: "",
+        taxId: 0,
+        companyId: 0,
     })
-
-    const [services, setServices] = useState<CompanyService[]>([{ content: "", img: "" }])
+    const [services, setServices] = useState<CompanyService[]>([])
     const [businessWeekTimeTables, setBusinessWeekTimeTables] = useState<BusinessWeekTimeTable[]>([])
     const [exceptionBusinessTimeTables, setExceptionBusinessTimeTables] = useState<ExceptionTimeTable[]>([])
     const [exceptionDayOffTimeTables, setExceptionDayOffTimeTables] = useState<ExceptionTimeTable[]>([])
 
+    useEffect(()=>{
+        const setData = async () => {
+            const {status, data} = await myCompanyDetailInfo()
+            if (status === 'success') {
+                setCompany(data.company)
+                setServices(data.services)
+                setBusinessWeekTimeTables(data.businessWeekTimeTable)
+                setExceptionBusinessTimeTables(data.exceptionBusinessTimeTable)
+                setExceptionDayOffTimeTables(data.exceptionDayOffTimeTable)
+            }
+        }
+        setData()
+    }, [])
+
     const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value, type } = e.target
+        const { name, value } = e.target
         setCompany((prev) => ({
             ...prev,
-            [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+            [name]: name === "taxId" ? Number(value) : value,
         }))
     }
 
@@ -60,17 +62,24 @@ function CompanyManagementForm() {
     }
 
     const addService = () => {
-        setServices((prev) => [...prev, { content: "", img: "" }])
+        setServices((prev) => [...prev, { id: 0, content: "", img: "" }])
     }
 
-    const removeService = (index: number) => {
-        setServices((prev) => prev.filter((_, i) => i !== index))
+    const removeService = (id: number) => {
+        setServices((prev) => prev.filter((service) => service.id !== id))
     }
 
-    const handleBusinessWeekTimeTableChange = (index: number, field: keyof BusinessWeekTimeTable, value: string) => {
+    const handleBusinessWeekTimeTableChange = (
+        index: number,
+        field: keyof BusinessWeekTimeTable,
+        value: string | number,
+    ) => {
         setBusinessWeekTimeTables((prev) => {
             const newTimeTables = [...prev]
-            newTimeTables[index] = { ...newTimeTables[index], [field]: value }
+            newTimeTables[index] = {
+                ...newTimeTables[index],
+                [field]: field === "dayOfTheWeek" ? Number(value) : value,
+            }
             return newTimeTables
         })
     }
@@ -78,42 +87,55 @@ function CompanyManagementForm() {
     const addBusinessWeekTimeTable = () => {
         setBusinessWeekTimeTables((prev) => [
             ...prev,
-            { dayOfTheWeek: "", openTime: "", closeTime: "", startBreakTime: "", endBreakTime: "" },
+            { id: Date.now(), dayOfTheWeek: 1, openTime: "", closeTime: "", startbreakTime: "", endbreakTime: "" },
         ])
     }
 
-    const removeBusinessWeekTimeTable = (index: number) => {
-        setBusinessWeekTimeTables((prev) => prev.filter((_, i) => i !== index))
+    const removeBusinessWeekTimeTable = (id: number) => {
+        setBusinessWeekTimeTables((prev) => prev.filter((timeTable) => timeTable.id !== id))
     }
 
     const handleExceptionTimeTableChange = (
         setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>,
-        index: number,
+        id: number,
         field: keyof ExceptionTimeTable,
         value: string,
     ) => {
         setter((prev) => {
-            const newTimeTables = [...prev]
-            newTimeTables[index] = { ...newTimeTables[index], [field]: value }
+            const newTimeTables = prev.map((timeTable) =>
+                timeTable.id === id ? { ...timeTable, [field]: value } : timeTable,
+            )
             return newTimeTables
         })
     }
 
     const addExceptionTimeTable = (setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>) => {
-        setter((prev) => [...prev, { date: "", time: "", reason: "" }])
+        setter((prev) => [...prev, { id: Date.now(), date: "", time: "", reason: "" }])
     }
 
-    const removeExceptionTimeTable = (
-        setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>,
-        index: number,
-    ) => {
-        setter((prev) => prev.filter((_, i) => i !== index))
+    const removeExceptionTimeTable = (setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>, id: number) => {
+        setter((prev) => prev.filter((timeTable) => timeTable.id !== id))
     }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        console.log({ company, services, businessWeekTimeTables, exceptionBusinessTimeTables, exceptionDayOffTimeTables })
-        // Here you would typically send the data to your backend
+        const submit = async (param:MyCompany) => {
+            const { status } = company.id === 0
+                ? await createCompany(param)
+                : await updateCompany(param)
+            return status
+        }
+
+        const param:MyCompany = {
+            company:company,
+            services:services,
+            businessWeekTimeTable : businessWeekTimeTables,
+            exceptionBusinessTimeTable : exceptionBusinessTimeTables,
+            exceptionDayOffTimeTable : exceptionDayOffTimeTables
+        }
+        submit(param).then(value => value === 'success')
+
+        return true
     }
 
     return (
@@ -143,23 +165,12 @@ function CompanyManagementForm() {
                             placeholder="Simple Explanation"
                             className="border-2 focus-visible:ring-yellow-500"
                         />
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="holidayWork"
-                                name="holidayWork"
-                                checked={company.holidayWork}
-                                onCheckedChange={(checked) => setCompany((prev) => ({ ...prev, holidayWork: checked as boolean }))}
-                                className="border-2 text-yellow-500"
-                            />
-                            <label htmlFor="holidayWork" className="text-sm text-gray-700">
-                                Holiday Work
-                            </label>
-                        </div>
                         <Input
                             name="taxId"
-                            value={company.taxId}
+                            value={company.taxId || ""}
                             onChange={handleCompanyChange}
                             placeholder="Tax ID"
+                            type="number"
                             className="border-2 focus-visible:ring-yellow-500"
                         />
                     </CardContent>
@@ -173,25 +184,25 @@ function CompanyManagementForm() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {services.map((service, index) => (
-                            <div key={index} className="p-4 border-2 rounded-lg">
+                        {services.map((service) => (
+                            <div key={service.id} className="p-4 border-2 rounded-lg">
                                 <Input
                                     value={service.content}
-                                    onChange={(e) => handleServiceChange(index, "content", e.target.value)}
+                                    onChange={(e) => handleServiceChange(services.indexOf(service), "content", e.target.value)}
                                     placeholder="Service Content"
                                     className="mb-2 border-2 focus-visible:ring-yellow-500"
                                 />
                                 <Input
                                     value={service.img}
-                                    onChange={(e) => handleServiceChange(index, "img", e.target.value)}
+                                    onChange={(e) => handleServiceChange(services.indexOf(service), "img", e.target.value)}
                                     placeholder="Image URL"
                                     className="border-2 focus-visible:ring-yellow-500"
                                 />
-                                {index > 0 && (
+                                {service.id !== 0 && (
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => removeService(index)}
+                                        onClick={() => removeService(service.id)}
                                         className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                                     >
                                         <Minus className="mr-2 h-4 w-4" /> Remove Service
@@ -218,9 +229,13 @@ function CompanyManagementForm() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {businessWeekTimeTables.map((timeTable, index) => (
-                            <div key={index} className="p-4 border-2 rounded-lg">
-                                <Select onValueChange={(value) => handleBusinessWeekTimeTableChange(index, "dayOfTheWeek", value)}>
+                        {businessWeekTimeTables.map((timeTable) => (
+                            <div key={timeTable.id} className="p-4 border-2 rounded-lg">
+                                <Select
+                                    onValueChange={(value) =>
+                                        handleBusinessWeekTimeTableChange(businessWeekTimeTables.indexOf(timeTable), "dayOfTheWeek", value)
+                                    }
+                                >
                                     <SelectTrigger className="border-2 focus:ring-yellow-500">
                                         <SelectValue placeholder="Select Day of the Week" />
                                     </SelectTrigger>
@@ -236,42 +251,64 @@ function CompanyManagementForm() {
                                     <Input
                                         type="time"
                                         value={timeTable.openTime}
-                                        onChange={(e) => handleBusinessWeekTimeTableChange(index, "openTime", e.target.value)}
+                                        onChange={(e) =>
+                                            handleBusinessWeekTimeTableChange(
+                                                businessWeekTimeTables.indexOf(timeTable),
+                                                "openTime",
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Open Time"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
                                     <Input
                                         type="time"
                                         value={timeTable.closeTime}
-                                        onChange={(e) => handleBusinessWeekTimeTableChange(index, "closeTime", e.target.value)}
+                                        onChange={(e) =>
+                                            handleBusinessWeekTimeTableChange(
+                                                businessWeekTimeTables.indexOf(timeTable),
+                                                "closeTime",
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Close Time"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
                                     <Input
                                         type="time"
-                                        value={timeTable.startBreakTime}
-                                        onChange={(e) => handleBusinessWeekTimeTableChange(index, "startBreakTime", e.target.value)}
+                                        value={timeTable.startbreakTime}
+                                        onChange={(e) =>
+                                            handleBusinessWeekTimeTableChange(
+                                                businessWeekTimeTables.indexOf(timeTable),
+                                                "startbreakTime",
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Start Break Time"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
                                     <Input
                                         type="time"
-                                        value={timeTable.endBreakTime}
-                                        onChange={(e) => handleBusinessWeekTimeTableChange(index, "endBreakTime", e.target.value)}
+                                        value={timeTable.endbreakTime}
+                                        onChange={(e) =>
+                                            handleBusinessWeekTimeTableChange(
+                                                businessWeekTimeTables.indexOf(timeTable),
+                                                "endbreakTime",
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="End Break Time"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
                                 </div>
-                                {index > 0 && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => removeBusinessWeekTimeTable(index)}
-                                        className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    >
-                                        <Minus className="mr-2 h-4 w-4" /> Remove Time Table
-                                    </Button>
-                                )}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => removeBusinessWeekTimeTable(timeTable.id)}
+                                    className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Minus className="mr-2 h-4 w-4" /> Remove Time Table
+                                </Button>
                             </div>
                         ))}
                         <Button
@@ -295,13 +332,18 @@ function CompanyManagementForm() {
                     <CardContent className="space-y-4">
                         <div className="space-y-4">
                             <h3 className="text-lg font-medium text-gray-900">Exception Business Time Tables</h3>
-                            {exceptionBusinessTimeTables.map((timeTable, index) => (
-                                <div key={index} className="p-4 border-2 rounded-lg">
+                            {exceptionBusinessTimeTables.map((timeTable) => (
+                                <div key={timeTable.id} className="p-4 border-2 rounded-lg">
                                     <Input
                                         type="date"
                                         value={timeTable.date}
                                         onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionBusinessTimeTables, index, "date", e.target.value)
+                                            handleExceptionTimeTableChange(
+                                                setExceptionBusinessTimeTables,
+                                                timeTable.id,
+                                                "date",
+                                                e.target.value,
+                                            )
                                         }
                                         placeholder="Date"
                                         className="mb-2 border-2 focus-visible:ring-yellow-500"
@@ -310,7 +352,12 @@ function CompanyManagementForm() {
                                         type="time"
                                         value={timeTable.time}
                                         onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionBusinessTimeTables, index, "time", e.target.value)
+                                            handleExceptionTimeTableChange(
+                                                setExceptionBusinessTimeTables,
+                                                timeTable.id,
+                                                "time",
+                                                e.target.value,
+                                            )
                                         }
                                         placeholder="Time"
                                         className="mb-2 border-2 focus-visible:ring-yellow-500"
@@ -318,21 +365,24 @@ function CompanyManagementForm() {
                                     <Input
                                         value={timeTable.reason}
                                         onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionBusinessTimeTables, index, "reason", e.target.value)
+                                            handleExceptionTimeTableChange(
+                                                setExceptionBusinessTimeTables,
+                                                timeTable.id,
+                                                "reason",
+                                                e.target.value,
+                                            )
                                         }
                                         placeholder="Reason"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
-                                    {index > 0 && (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => removeExceptionTimeTable(setExceptionBusinessTimeTables, index)}
-                                            className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                            <Minus className="mr-2 h-4 w-4" /> Remove Exception Business Time Table
-                                        </Button>
-                                    )}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => removeExceptionTimeTable(setExceptionBusinessTimeTables, timeTable.id)}
+                                        className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                        <Minus className="mr-2 h-4 w-4" /> Remove Exception Business Time Table
+                                    </Button>
                                 </div>
                             ))}
                             <Button
@@ -347,13 +397,13 @@ function CompanyManagementForm() {
 
                         <div className="space-y-4">
                             <h3 className="text-lg font-medium text-gray-900">Exception Day Off Time Tables</h3>
-                            {exceptionDayOffTimeTables.map((timeTable, index) => (
-                                <div key={index} className="p-4 border-2 rounded-lg">
+                            {exceptionDayOffTimeTables.map((timeTable) => (
+                                <div key={timeTable.id} className="p-4 border-2 rounded-lg">
                                     <Input
                                         type="date"
                                         value={timeTable.date}
                                         onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionDayOffTimeTables, index, "date", e.target.value)
+                                            handleExceptionTimeTableChange(setExceptionDayOffTimeTables, timeTable.id, "date", e.target.value)
                                         }
                                         placeholder="Date"
                                         className="mb-2 border-2 focus-visible:ring-yellow-500"
@@ -362,7 +412,7 @@ function CompanyManagementForm() {
                                         type="time"
                                         value={timeTable.time}
                                         onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionDayOffTimeTables, index, "time", e.target.value)
+                                            handleExceptionTimeTableChange(setExceptionDayOffTimeTables, timeTable.id, "time", e.target.value)
                                         }
                                         placeholder="Time"
                                         className="mb-2 border-2 focus-visible:ring-yellow-500"
@@ -370,21 +420,24 @@ function CompanyManagementForm() {
                                     <Input
                                         value={timeTable.reason}
                                         onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionDayOffTimeTables, index, "reason", e.target.value)
+                                            handleExceptionTimeTableChange(
+                                                setExceptionDayOffTimeTables,
+                                                timeTable.id,
+                                                "reason",
+                                                e.target.value,
+                                            )
                                         }
                                         placeholder="Reason"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
-                                    {index > 0 && (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => removeExceptionTimeTable(setExceptionDayOffTimeTables, index)}
-                                            className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                            <Minus className="mr-2 h-4 w-4" /> Remove Exception Day Off Time Table
-                                        </Button>
-                                    )}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => removeExceptionTimeTable(setExceptionDayOffTimeTables, timeTable.id)}
+                                        className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                        <Minus className="mr-2 h-4 w-4" /> Remove Exception Day Off Time Table
+                                    </Button>
                                 </div>
                             ))}
                             <Button
@@ -414,3 +467,4 @@ export default function CompanyManagementPage() {
         </Layout>
     )
 }
+

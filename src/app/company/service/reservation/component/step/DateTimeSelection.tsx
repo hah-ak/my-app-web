@@ -24,14 +24,17 @@ export const DateTimeSelection = ({ onSelect }: { onSelect: (date: Date, time: s
     return (
         <div className="space-y-4">
             <div>
-                <Label>날짜 선택</Label>
-                <Calendar mode="single" selected={date} onSelect={handleDateSelect} className="rounded-md border mx-auto" />
+                <Label className="text-lg font-semibold text-gray-900">날짜 선택</Label>
+                <Calendar mode="single" selected={date} onSelect={handleDateSelect}
+                          className="rounded-md border-2 mx-auto"/>
             </div>
             <div>
-                <Label htmlFor="time">시간 선택</Label>
+                <Label htmlFor="time" className="text-gray-900">
+                    시간 선택
+                </Label>
                 <Select onValueChange={handleTimeSelect}>
-                    <SelectTrigger id="time">
-                        <SelectValue placeholder="시간을 선택해주세요" />
+                    <SelectTrigger id="time" className="border-2 focus:ring-yellow-500">
+                        <SelectValue placeholder="시간을 선택해주세요"/>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="09:00">09:00</SelectItem>
