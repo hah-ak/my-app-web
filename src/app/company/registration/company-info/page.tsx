@@ -1,22 +1,17 @@
 "use client"
 
-import React, {useEffect} from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Minus, Building2, Briefcase, Clock, Calendar } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import React, {useEffect, useState} from "react"
+import {Button} from "@/components/ui/button"
+import {Input} from "@/components/ui/input"
+import {Textarea} from "@/components/ui/textarea"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Briefcase, Building2, Calendar, Clock, Minus, Plus} from "lucide-react"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import Layout from "../_components/Layout"
-import type {
-    CompanyService,
-    BusinessWeekTimeTable,
-    ExceptionTimeTable,
-    Company,
-    MyCompany
-} from "@/types/company/types"
+import type {BusinessWeekTimeTable, Company, CompanyService, ExceptionTimeTable, MyCompany} from "@/types/company/types"
 import {createCompany, myCompanyDetailInfo, updateCompany} from "@/app/company/actions";
+import {Label} from "@/components/ui/label";
+import {Checkbox} from "@/components/ui/checkbox";
 
 function CompanyManagementForm() {
     const [company, setCompany] = useState<Company>({
@@ -29,7 +24,6 @@ function CompanyManagementForm() {
     const [services, setServices] = useState<CompanyService[]>([])
     const [businessWeekTimeTables, setBusinessWeekTimeTables] = useState<BusinessWeekTimeTable[]>([])
     const [exceptionBusinessTimeTables, setExceptionBusinessTimeTables] = useState<ExceptionTimeTable[]>([])
-    const [exceptionDayOffTimeTables, setExceptionDayOffTimeTables] = useState<ExceptionTimeTable[]>([])
 
     useEffect(()=>{
         const setData = async () => {
@@ -39,7 +33,6 @@ function CompanyManagementForm() {
                 setServices(data.services)
                 setBusinessWeekTimeTables(data.businessWeekTimeTable)
                 setExceptionBusinessTimeTables(data.exceptionBusinessTimeTable)
-                setExceptionDayOffTimeTables(data.exceptionDayOffTimeTable)
             }
         }
         setData()
@@ -65,7 +58,7 @@ function CompanyManagementForm() {
         setServices((prev) => [...prev, { id: 0, content: "", img: "" }])
     }
 
-    const removeService = (id: number) => {
+    const removeService = (id: number ) => {
         setServices((prev) => prev.filter((service) => service.id !== id))
     }
 
@@ -87,19 +80,19 @@ function CompanyManagementForm() {
     const addBusinessWeekTimeTable = () => {
         setBusinessWeekTimeTables((prev) => [
             ...prev,
-            { id: Date.now(), dayOfTheWeek: 1, openTime: "", closeTime: "", startbreakTime: "", endbreakTime: "" },
+            { id: 0, dayOfTheWeek: 1, openTime: "", closeTime: "", startBreaktime: "", endBreaktime: "" },
         ])
     }
 
-    const removeBusinessWeekTimeTable = (id: number) => {
+    const removeBusinessWeekTimeTable = (id: number ) => {
         setBusinessWeekTimeTables((prev) => prev.filter((timeTable) => timeTable.id !== id))
     }
 
     const handleExceptionTimeTableChange = (
         setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>,
-        id: number,
+        id: number ,
         field: keyof ExceptionTimeTable,
-        value: string,
+        value: string | boolean,
     ) => {
         setter((prev) => {
             const newTimeTables = prev.map((timeTable) =>
@@ -110,10 +103,10 @@ function CompanyManagementForm() {
     }
 
     const addExceptionTimeTable = (setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>) => {
-        setter((prev) => [...prev, { id: Date.now(), date: "", time: "", reason: "" }])
+        setter((prev) => [...prev, { id: 0, date: "", endTime: "", startTime: "", dayClose : false, reason: "" }])
     }
 
-    const removeExceptionTimeTable = (setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>, id: number) => {
+    const removeExceptionTimeTable = (setter: React.Dispatch<React.SetStateAction<ExceptionTimeTable[]>>, id: number ) => {
         setter((prev) => prev.filter((timeTable) => timeTable.id !== id))
     }
 
@@ -130,8 +123,7 @@ function CompanyManagementForm() {
             company:company,
             services:services,
             businessWeekTimeTable : businessWeekTimeTables,
-            exceptionBusinessTimeTable : exceptionBusinessTimeTables,
-            exceptionDayOffTimeTable : exceptionDayOffTimeTables
+            exceptionBusinessTimeTable : exceptionBusinessTimeTables
         }
         submit(param).then(value => value === 'success')
 
@@ -229,12 +221,13 @@ function CompanyManagementForm() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {businessWeekTimeTables.map((timeTable) => (
-                            <div key={timeTable.id} className="p-4 border-2 rounded-lg">
+                        {businessWeekTimeTables.map((timeTable, index) => (
+                            <div key={index} className="p-4 border-2 rounded-lg">
                                 <Select
                                     onValueChange={(value) =>
                                         handleBusinessWeekTimeTableChange(businessWeekTimeTables.indexOf(timeTable), "dayOfTheWeek", value)
                                     }
+                                    defaultValue={String(timeTable.dayOfTheWeek)}
                                 >
                                     <SelectTrigger className="border-2 focus:ring-yellow-500">
                                         <SelectValue placeholder="Select Day of the Week" />
@@ -248,6 +241,7 @@ function CompanyManagementForm() {
                                     </SelectContent>
                                 </Select>
                                 <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <Label>openTime</Label>
                                     <Input
                                         type="time"
                                         value={timeTable.openTime}
@@ -261,6 +255,7 @@ function CompanyManagementForm() {
                                         placeholder="Open Time"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
+                                    <Label>close time</Label>
                                     <Input
                                         type="time"
                                         value={timeTable.closeTime}
@@ -274,26 +269,28 @@ function CompanyManagementForm() {
                                         placeholder="Close Time"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
+                                    <Label>start breaktime</Label>
                                     <Input
                                         type="time"
-                                        value={timeTable.startbreakTime}
+                                        value={timeTable.startBreaktime ?? ''}
                                         onChange={(e) =>
                                             handleBusinessWeekTimeTableChange(
                                                 businessWeekTimeTables.indexOf(timeTable),
-                                                "startbreakTime",
+                                                "startBreaktime",
                                                 e.target.value,
                                             )
                                         }
                                         placeholder="Start Break Time"
                                         className="border-2 focus-visible:ring-yellow-500"
                                     />
+                                    <Label>end breaktime</Label>
                                     <Input
                                         type="time"
-                                        value={timeTable.endbreakTime}
+                                        value={timeTable.endBreaktime ?? ''}
                                         onChange={(e) =>
                                             handleBusinessWeekTimeTableChange(
                                                 businessWeekTimeTables.indexOf(timeTable),
-                                                "endbreakTime",
+                                                "endBreaktime",
                                                 e.target.value,
                                             )
                                         }
@@ -348,20 +345,58 @@ function CompanyManagementForm() {
                                         placeholder="Date"
                                         className="mb-2 border-2 focus-visible:ring-yellow-500"
                                     />
-                                    <Input
-                                        type="time"
-                                        value={timeTable.time}
-                                        onChange={(e) =>
-                                            handleExceptionTimeTableChange(
-                                                setExceptionBusinessTimeTables,
-                                                timeTable.id,
-                                                "time",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Time"
-                                        className="mb-2 border-2 focus-visible:ring-yellow-500"
-                                    />
+                                    <div className="flex items-center space-x-2 mb-2">
+                                        <Checkbox
+                                            id={`dayClose-${timeTable.id}`}
+                                            checked={timeTable.dayClose}
+                                            onCheckedChange={(checked) =>
+                                                handleExceptionTimeTableChange(
+                                                    setExceptionBusinessTimeTables,
+                                                    timeTable.id,
+                                                    "dayClose",
+                                                    checked as boolean,
+                                                )
+                                            }
+                                        />
+                                        <label
+                                            htmlFor={`dayClose-${timeTable.id}`}
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                        >
+                                            Day Closed
+                                        </label>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Input
+                                            type="time"
+                                            value={timeTable.startTime}
+                                            onChange={(e) =>
+                                                handleExceptionTimeTableChange(
+                                                    setExceptionBusinessTimeTables,
+                                                    timeTable.id,
+                                                    "startTime",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Start Time"
+                                            className="border-2 focus-visible:ring-yellow-500"
+                                            disabled={timeTable.dayClose}
+                                        />
+                                        <Input
+                                            type="time"
+                                            value={timeTable.endTime}
+                                            onChange={(e) =>
+                                                handleExceptionTimeTableChange(
+                                                    setExceptionBusinessTimeTables,
+                                                    timeTable.id,
+                                                    "endTime",
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="End Time"
+                                            className="border-2 focus-visible:ring-yellow-500"
+                                            disabled={timeTable.dayClose}
+                                        />
+                                    </div>
                                     <Input
                                         value={timeTable.reason}
                                         onChange={(e) =>
@@ -373,7 +408,7 @@ function CompanyManagementForm() {
                                             )
                                         }
                                         placeholder="Reason"
-                                        className="border-2 focus-visible:ring-yellow-500"
+                                        className="mt-2 border-2 focus-visible:ring-yellow-500"
                                     />
                                     <Button
                                         type="button"
@@ -392,61 +427,6 @@ function CompanyManagementForm() {
                                 className="w-full border-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
                             >
                                 <Plus className="mr-2 h-4 w-4" /> Add Exception Business Time Table
-                            </Button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h3 className="text-lg font-medium text-gray-900">Exception Day Off Time Tables</h3>
-                            {exceptionDayOffTimeTables.map((timeTable) => (
-                                <div key={timeTable.id} className="p-4 border-2 rounded-lg">
-                                    <Input
-                                        type="date"
-                                        value={timeTable.date}
-                                        onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionDayOffTimeTables, timeTable.id, "date", e.target.value)
-                                        }
-                                        placeholder="Date"
-                                        className="mb-2 border-2 focus-visible:ring-yellow-500"
-                                    />
-                                    <Input
-                                        type="time"
-                                        value={timeTable.time}
-                                        onChange={(e) =>
-                                            handleExceptionTimeTableChange(setExceptionDayOffTimeTables, timeTable.id, "time", e.target.value)
-                                        }
-                                        placeholder="Time"
-                                        className="mb-2 border-2 focus-visible:ring-yellow-500"
-                                    />
-                                    <Input
-                                        value={timeTable.reason}
-                                        onChange={(e) =>
-                                            handleExceptionTimeTableChange(
-                                                setExceptionDayOffTimeTables,
-                                                timeTable.id,
-                                                "reason",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Reason"
-                                        className="border-2 focus-visible:ring-yellow-500"
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => removeExceptionTimeTable(setExceptionDayOffTimeTables, timeTable.id)}
-                                        className="mt-2 border-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    >
-                                        <Minus className="mr-2 h-4 w-4" /> Remove Exception Day Off Time Table
-                                    </Button>
-                                </div>
-                            ))}
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => addExceptionTimeTable(setExceptionDayOffTimeTables)}
-                                className="w-full border-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-                            >
-                                <Plus className="mr-2 h-4 w-4" /> Add Exception Day Off Time Table
                             </Button>
                         </div>
                     </CardContent>

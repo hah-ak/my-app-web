@@ -15,14 +15,16 @@ export interface BusinessWeekTimeTable {
     dayOfTheWeek:number
     openTime:string
     closeTime:string
-    startbreakTime:string
-    endbreakTime:string
+    startBreaktime:string | null
+    endBreaktime:string | null
 }
 
 export interface ExceptionTimeTable {
     id:number
     date: string
-    time: string
+    endTime: string
+    startTime: string
+    dayClose: boolean
     reason: string
 }
 
@@ -30,6 +32,5 @@ export type MyCompany = {
     company:Company
     services:CompanyService[]
     businessWeekTimeTable:BusinessWeekTimeTable[]
-    exceptionDayOffTimeTable:ExceptionTimeTable[]
     exceptionBusinessTimeTable:ExceptionTimeTable[]
 }
