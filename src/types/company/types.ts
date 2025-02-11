@@ -10,7 +10,7 @@ export interface CompanyService {
     content:string;
     img:string;
 }
-export interface BusinessWeekTimeTable {
+export interface WeekTimeTable {
     id:number
     dayOfTheWeek:number
     openTime:string
@@ -31,6 +31,6 @@ export interface ExceptionTimeTable {
 export type MyCompany = {
     company:Company
     services:CompanyService[]
-    businessWeekTimeTable:BusinessWeekTimeTable[]
+    businessWeekTimeTable:WeekTimeTable[]
     exceptionBusinessTimeTable:ExceptionTimeTable[]
 }

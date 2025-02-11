@@ -35,11 +35,6 @@ export default function Layout({ children }: LayoutProps) {
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                    <Link href="/company/registration/staff-service-info" className="w-full">
-                                        Staff Service Info
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
                                     <Link href="/staff-schedule-table" className="w-full">
                                         Staff Schedule
                                     </Link>

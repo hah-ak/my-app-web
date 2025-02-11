@@ -8,7 +8,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Briefcase, Building2, Calendar, Clock, Minus, Plus} from "lucide-react"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import Layout from "../_components/Layout"
-import type {BusinessWeekTimeTable, Company, CompanyService, ExceptionTimeTable, MyCompany} from "@/types/company/types"
+import type {WeekTimeTable, Company, CompanyService, ExceptionTimeTable, MyCompany} from "@/types/company/types"
 import {createCompany, myCompanyDetailInfo, updateCompany} from "@/app/company/actions";
 import {Label} from "@/components/ui/label";
 import {Checkbox} from "@/components/ui/checkbox";
@@ -22,7 +22,7 @@ function CompanyManagementForm() {
         companyId: 0,
     })
     const [services, setServices] = useState<CompanyService[]>([])
-    const [businessWeekTimeTables, setBusinessWeekTimeTables] = useState<BusinessWeekTimeTable[]>([])
+    const [businessWeekTimeTables, setBusinessWeekTimeTables] = useState<WeekTimeTable[]>([])
     const [exceptionBusinessTimeTables, setExceptionBusinessTimeTables] = useState<ExceptionTimeTable[]>([])
 
     useEffect(()=>{
@@ -64,7 +64,7 @@ function CompanyManagementForm() {
 
     const handleBusinessWeekTimeTableChange = (
         index: number,
-        field: keyof BusinessWeekTimeTable,
+        field: keyof WeekTimeTable,
         value: string | number,
     ) => {
         setBusinessWeekTimeTables((prev) => {

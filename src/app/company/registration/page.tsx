@@ -65,15 +65,6 @@ export default async function Home() {
                             Staff Management
                         </Button>
                     </Link>
-                    <Link href="/company/registration/staff-service-info" className="transition-transform hover:-translate-y-1">
-                        <Button
-                            variant="outline"
-                            className="w-full h-24 text-lg font-medium border-2 hover:bg-yellow-50 hover:border-yellow-400 hover:text-yellow-600"
-                        >
-                            <Briefcase className="mr-2 h-5 w-5 text-yellow-500" />
-                            Staff Service Info
-                        </Button>
-                    </Link>
                     <Link href="/staff-schedule-table" className="transition-transform hover:-translate-y-1">
                         <Button
                             variant="outline"
